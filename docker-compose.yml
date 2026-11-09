@@ -22,6 +22,10 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-clinic}:${POSTGRES_PASSWORD:?}@db:5432/${POSTGRES_DB:-clinic}
       TIMEZONE: Asia/Ho_Chi_Minh
+      # CHỈ DEV: token này đăng nhập như Lễ tân. Để trống thì mọi token đều bị từ chối.
+      DEV_STAFF_TOKEN: ${DEV_STAFF_TOKEN:-}
+      # CHỈ DEV: origin được phép gọi API từ trình duyệt (phân tách bằng dấu phẩy). Để trống = tắt CORS.
+      CORS_ALLOW_ORIGINS: ${CORS_ALLOW_ORIGINS:-}
     ports:
       - "8000:8000"
     depends_on:
@@ -32,6 +36,8 @@ services:
     build: ./frontend
     environment:
       VITE_API_PROXY_TARGET: http://backend:8000
+      # CHỈ DEV: cùng giá trị với DEV_STAFF_TOKEN để trình duyệt tự đăng nhập khi review giao diện.
+      VITE_DEV_STAFF_TOKEN: ${DEV_STAFF_TOKEN:-}
     ports:
       - "5173:5173"
     depends_on:

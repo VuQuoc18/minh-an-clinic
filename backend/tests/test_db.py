@@ -58,5 +58,15 @@ def test_get_engine_without_database_url_raises(monkeypatch, tmp_path):
         get_engine()
 
 
-def test_base_metadata_starts_empty():
-    assert Base.metadata.tables == {}
+def test_base_metadata_registers_reception_tables():
+    import app.models  # noqa: F401
+
+    assert set(Base.metadata.tables) == {
+        "specialties",
+        "doctors",
+        "slots",
+        "patient_accounts",
+        "patient_profiles",
+        "appointments",
+        "notifications",
+    }
