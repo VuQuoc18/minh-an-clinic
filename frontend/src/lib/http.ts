@@ -1,9 +1,9 @@
-// Gọi API qua proxy `/api`. Token nhân viên lấy từ tokenStore (đăng nhập thật làm ở FR-TK-04).
+// Gọi API theo đường dẫn tương đối với `import.meta.env.BASE_URL` (`<base>api`). Token nhân viên lấy từ tokenStore (đăng nhập thật làm ở FR-TK-04).
 
 import { getToken } from './tokenStore'
 
 export { TOKEN_KEY } from './tokenStore'
-const BASE_URL = '/api'
+const BASE_URL = `${import.meta.env.BASE_URL}api`
 const GENERIC_ERROR = 'Không thực hiện được. Vui lòng thử lại.'
 
 export class ApiError extends Error {

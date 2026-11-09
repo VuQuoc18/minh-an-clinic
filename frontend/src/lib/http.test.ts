@@ -123,3 +123,22 @@ describe('apiRequest', () => {
     })
   })
 })
+
+describe('apiRequest với tiền tố BASE_URL', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
+  it('gọi API theo đường dẫn tương đối dưới tiền tố của preview', async () => {
+    vi.stubEnv('BASE_URL', '/preview/')
+    vi.resetModules()
+    const { apiRequest: prefixedRequest } = await import('./http')
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({}))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await prefixedRequest('GET', '/reception/doctors')
+
+    expect(fetchMock.mock.calls[0][0]).toBe('/preview/api/reception/doctors')
+  })
+})
