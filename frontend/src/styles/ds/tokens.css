@@ -1,6 +1,6 @@
 :root {
   color-scheme: light;
-  --ds-font-sans: "Quicksand", "Noto Sans JP", "Hiragino Sans", "Segoe UI", system-ui, sans-serif;
+  --ds-font-sans: "Be Vietnam Pro", "Noto Sans", "Noto Sans JP", "Hiragino Sans", "Segoe UI", system-ui, sans-serif;
   --ds-font-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   --ds-font-size-xs: 0.75rem;
   --ds-font-size-sm: 0.8125rem;
