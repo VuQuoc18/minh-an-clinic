@@ -1,0 +1,6 @@
+dist
+node_modules
+package-lock.json
+
+# Bản sao nguyên văn từ design system, không format lại để đối chiếu với nguồn
+src/styles
