@@ -1,0 +1,36 @@
+# Cấu hình chạy cả hệ thống trong sandbox của SpecForge (Postgres + backend + frontend).
+# SpecForge cấp DATABASE_URL (dạng postgresql://...) và PORT cho từng dịch vụ.
+# Bản xem trước có origin riêng nên ứng dụng chạy ở "/"; frontend gọi /api cùng origin.
+database:
+  engine: postgres
+
+setup:
+  - cwd: backend
+    run: python3 -m venv .venv && .venv/bin/pip install -q -e ".[dev]"
+    timeout_s: 600
+  - cwd: backend
+    run: DEV_STAFF_TOKEN=sandbox-dev-token .venv/bin/alembic upgrade head && DEV_STAFF_TOKEN=sandbox-dev-token .venv/bin/python -m app.dev_seed
+    timeout_s: 300
+  - cwd: frontend
+    run: npm ci --no-audit --no-fund
+    timeout_s: 600
+
+services:
+  backend:
+    cwd: backend
+    run: .venv/bin/uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    port: 8000
+    ready: /api/health
+    env:
+      DEV_STAFF_TOKEN: sandbox-dev-token
+  frontend:
+    cwd: frontend
+    run: npm run dev -- --host 0.0.0.0 --port $PORT --strictPort
+    port: 5173
+    env:
+      VITE_API_PROXY_TARGET: http://127.0.0.1:8000
+      VITE_DEV_STAFF_TOKEN: sandbox-dev-token
+
+routes:
+  - { path: /api, service: backend }
+  - { path: /, service: frontend }
