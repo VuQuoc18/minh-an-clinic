@@ -2,25 +2,35 @@
   "version": 1,
   "profiles": [
     {
-      "name": "backend",
+      "id": "backend",
+      "label": "Backend (pytest)",
       "kind": "unit",
+      "runner": "pytest",
       "cwd": "backend",
-      "command": "pytest --junitxml=reports/junit.xml --cov=app --cov-report=xml:reports/coverage.xml",
+      "command": ".venv/bin/python -m pytest --junitxml=reports/junit.xml --cov=app --cov-report=xml:reports/coverage.xml",
       "report": {
         "format": "junit",
         "path": "backend/reports/junit.xml",
-        "coverage": { "format": "cobertura", "path": "backend/reports/coverage.xml" }
+        "coverage": {
+          "format": "cobertura",
+          "path": "backend/reports/coverage.xml"
+        }
       }
     },
     {
-      "name": "frontend",
+      "id": "frontend",
+      "label": "Frontend (vitest)",
       "kind": "unit",
+      "runner": "vitest",
       "cwd": "frontend",
       "command": "npx vitest run --reporter=junit --outputFile.junit=reports/junit.xml --coverage.enabled --coverage.provider=v8 --coverage.reporter=cobertura",
       "report": {
         "format": "junit",
         "path": "frontend/reports/junit.xml",
-        "coverage": { "format": "cobertura", "path": "frontend/coverage/cobertura-coverage.xml" }
+        "coverage": {
+          "format": "cobertura",
+          "path": "frontend/coverage/cobertura-coverage.xml"
+        }
       }
     }
   ]
