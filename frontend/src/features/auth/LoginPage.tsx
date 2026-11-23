@@ -96,6 +96,7 @@ export function LoginPage() {
                 onChange={(event) => setPassword(event.target.value)}
               />
               <Button
+                type="button"
                 variant="ghost"
                 size="sm"
                 aria-pressed={showPassword}

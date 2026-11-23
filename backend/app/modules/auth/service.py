@@ -7,6 +7,8 @@ import secrets
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import exists, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -84,6 +86,27 @@ def _has_primary_profile(db: Session, account_id: int) -> bool:
     )
 
 
+def _lock_throttle(db: Session, phone: str) -> LoginThrottle:
+    """Lấy dòng bộ đếm của số này và khóa dòng (SELECT ... FOR UPDATE), tạo dòng nếu chưa có.
+
+    ``FOR UPDATE`` chỉ khóa dòng đã tồn tại, nên dòng được tạo trước bằng
+    ``INSERT ... ON CONFLICT DO NOTHING``: các request song song cho cùng một số đều chờ nhau
+    ở dòng này và đọc lại giá trị mới nhất, nên bộ đếm không bị vượt quá giới hạn.
+    """
+    insert = sqlite_insert if db.get_bind().dialect.name == "sqlite" else pg_insert
+    db.execute(
+        insert(LoginThrottle)
+        .values(phone=phone, failed_count=0)
+        .on_conflict_do_nothing(index_elements=[LoginThrottle.phone])
+    )
+    return db.execute(
+        select(LoginThrottle)
+        .where(LoginThrottle.phone == phone)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).scalar_one()
+
+
 def _create_session(db: Session, account_id: int, now: dt.datetime) -> tuple[str, dt.datetime]:
     token = secrets.token_urlsafe(32)
     db.add(
@@ -135,9 +158,13 @@ def _login(db: Session, phone: str, password: str, now: dt.datetime) -> LoginOut
 
     # Bước 5: so mật khẩu.
     if not verify_password(password, account.password_hash):
-        if throttle is None:
-            throttle = LoginThrottle(phone=phone, failed_count=0)
-            db.add(throttle)
+        # Dòng có thể chưa tồn tại, hoặc request song song vừa đổi nó: khóa lại và đọc giá trị mới.
+        throttle = _lock_throttle(db, phone)
+        if throttle.locked_until is not None:
+            locked_until = _aware(throttle.locked_until, now)
+            if now < locked_until:
+                db.commit()
+                raise _locked(locked_until)
         throttle.failed_count += 1
         if throttle.failed_count >= MAX_FAILED_ATTEMPTS:
             throttle.locked_until = now + LOCK_DURATION

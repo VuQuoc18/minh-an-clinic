@@ -238,6 +238,21 @@ describe('LoginPage', () => {
     )
   })
 
+  it('bấm nút hiện/ẩn mật khẩu không gửi form đăng nhập', async () => {
+    const fetchMock = stubLogin(200, OK)
+    renderPage()
+    await fill('0912345678', 'matkhau1')
+
+    await userEvent.click(screen.getByRole('button', { name: 'Hiện mật khẩu' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Ẩn mật khẩu' }))
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(screen.getByRole('button', { name: 'Hiện mật khẩu' })).toHaveAttribute(
+      'type',
+      'button',
+    )
+  })
+
   it('bấm Enter trong ô mật khẩu khi nút bị khóa thì không gửi yêu cầu', async () => {
     const fetchMock = stubLogin(200, OK)
     renderPage()

@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.models import LoginThrottle, PatientAccount, PatientSession
 from app.modules.auth.service import LOCK_DURATION, MAX_FAILED_ATTEMPTS
 
-from .conftest import PASSWORD, PHONE
+from .conftest import NOW, PASSWORD, PHONE
 
 URL = "/api/auth/patient/login"
 
@@ -292,6 +292,57 @@ def test_system_error_rolls_back_and_keeps_counter(client, seed, db, monkeypatch
     assert failing.post(URL, json={"so_dien_thoai": PHONE, "mat_khau": PASSWORD}).status_code == 500
 
     assert _throttle(db).failed_count == 2
+
+
+def test_first_wrong_password_creates_throttle_row_once(client, seed, db):
+    seed.account()
+
+    _fail(client, 1)
+
+    rows = db.scalars(select(LoginThrottle)).all()
+    assert [(r.phone, r.failed_count) for r in rows] == [(PHONE, 1)]
+
+
+def test_throttle_row_created_by_parallel_request_is_reused(client, seed, db, monkeypatch):
+    """Request song song tạo dòng sau khi request này đã đọc (chưa có dòng): không tạo trùng."""
+    from app.modules.auth import service
+
+    seed.account()
+    real_verify = service.verify_password
+
+    def verify_after_parallel_insert(password, password_hash):
+        db.add(LoginThrottle(phone=PHONE, failed_count=3))
+        db.commit()
+        return real_verify(password, password_hash)
+
+    monkeypatch.setattr(service, "verify_password", verify_after_parallel_insert)
+
+    body = client.post(URL, json={"so_dien_thoai": PHONE, "mat_khau": "sai-mat-khau"}).json()
+
+    assert body["detail"]["so_lan_con_lai"] == 1
+    rows = db.scalars(select(LoginThrottle)).all()
+    assert [r.failed_count for r in rows] == [4]
+
+
+def test_parallel_request_that_locked_the_phone_stops_this_attempt(client, seed, db, monkeypatch):
+    from app.modules.auth import service
+
+    seed.account()
+    real_verify = service.verify_password
+    until = NOW + LOCK_DURATION
+
+    def verify_after_parallel_lock(password, password_hash):
+        db.add(LoginThrottle(phone=PHONE, failed_count=MAX_FAILED_ATTEMPTS, locked_until=until))
+        db.commit()
+        return real_verify(password, password_hash)
+
+    monkeypatch.setattr(service, "verify_password", verify_after_parallel_lock)
+
+    response = client.post(URL, json={"so_dien_thoai": PHONE, "mat_khau": "sai-mat-khau"})
+
+    assert response.status_code == 429
+    assert response.json()["detail"]["code"] == "BI_KHOA"
+    assert _throttle(db).failed_count == MAX_FAILED_ATTEMPTS
 
 
 def test_account_is_not_modified_by_login(client, seed, db):
