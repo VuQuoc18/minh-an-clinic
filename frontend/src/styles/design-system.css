@@ -1,0 +1,10 @@
+/*
+ * Design system "App default" (ref v1), đồng bộ nguyên văn từ nguồn:
+ *   ds/tokens.css     <- tokens.css
+ *   ds/utilities.css  <- utilities.css
+ *   ds/components.css <- components/<name>/component.css (30 component, theo thứ tự tên)
+ * Không tự đổi giá trị. Khi design system lên phiên bản mới, chép lại 3 file trong ds/.
+ */
+@import './ds/tokens.css';
+@import './ds/utilities.css';
+@import './ds/components.css';
