@@ -11,7 +11,7 @@ from app.models.appointment import (
     NotificationStatus,
 )
 from app.models.catalog import SLOT_MINUTES, Doctor, Slot, SlotKind, Specialty
-from app.models.patient import PatientAccount, PatientProfile
+from app.models.patient import LoginThrottle, PatientAccount, PatientProfile, PatientSession
 
 __all__ = [
     "SLOT_MINUTES",
@@ -19,10 +19,12 @@ __all__ = [
     "AppointmentStatus",
     "Channel",
     "Doctor",
+    "LoginThrottle",
     "Notification",
     "NotificationStatus",
     "PatientAccount",
     "PatientProfile",
+    "PatientSession",
     "Slot",
     "SlotKind",
     "Specialty",

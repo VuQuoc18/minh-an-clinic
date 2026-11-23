@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "profiles": [
+    {
+      "name": "backend",
+      "kind": "unit",
+      "cwd": "backend",
+      "command": "pytest --junitxml=reports/junit.xml --cov=app --cov-report=xml:reports/coverage.xml",
+      "report": {
+        "format": "junit",
+        "path": "backend/reports/junit.xml",
+        "coverage": { "format": "cobertura", "path": "backend/reports/coverage.xml" }
+      }
+    },
+    {
+      "name": "frontend",
+      "kind": "unit",
+      "cwd": "frontend",
+      "command": "npx vitest run --reporter=junit --outputFile.junit=reports/junit.xml --coverage.enabled --coverage.provider=v8 --coverage.reporter=cobertura",
+      "report": {
+        "format": "junit",
+        "path": "frontend/reports/junit.xml",
+        "coverage": { "format": "cobertura", "path": "frontend/coverage/cobertura-coverage.xml" }
+      }
+    }
+  ]
+}

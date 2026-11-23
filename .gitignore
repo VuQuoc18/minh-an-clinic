@@ -24,3 +24,5 @@ frontend/dist/
 coverage/
 *.egg-info/
 build/
+
+reports/

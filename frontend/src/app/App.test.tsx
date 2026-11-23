@@ -68,4 +68,12 @@ describe('App', () => {
     ).toBeInTheDocument()
     vi.unstubAllGlobals()
   })
+
+  it('mở màn hình Đăng nhập bệnh nhân ở /dang-nhap', async () => {
+    renderAt('/dang-nhap')
+
+    expect(
+      await screen.findByRole('heading', { name: 'Đăng nhập' }),
+    ).toBeInTheDocument()
+  })
 })

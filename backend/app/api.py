@@ -6,6 +6,7 @@ nguyên đường dẫn ``/api`` sang backend, không cắt bớt tiền tố.
 
 from fastapi import APIRouter
 
+from app.modules.auth.router import router as auth_router
 from app.modules.reception.router import router as reception_router
 
 API_PREFIX = "/api"
@@ -19,3 +20,4 @@ def health() -> dict[str, str]:
 
 
 api_router.include_router(reception_router)
+api_router.include_router(auth_router)

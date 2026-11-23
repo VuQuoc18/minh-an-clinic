@@ -58,7 +58,7 @@ def test_get_engine_without_database_url_raises(monkeypatch, tmp_path):
         get_engine()
 
 
-def test_base_metadata_registers_reception_tables():
+def test_base_metadata_registers_reception_and_login_tables():
     import app.models  # noqa: F401
 
     assert set(Base.metadata.tables) == {
@@ -69,4 +69,6 @@ def test_base_metadata_registers_reception_tables():
         "patient_profiles",
         "appointments",
         "notifications",
+        "patient_login_throttles",
+        "patient_sessions",
     }

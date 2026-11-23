@@ -1,11 +1,16 @@
 import { lazy, Suspense } from 'react'
 import { Link, Navigate, Route, Routes } from 'react-router-dom'
+import { LOGIN_PATH } from '@/features/auth/routes'
 
 // Mỗi màn hình tải riêng khi cần, để trang đầu nhẹ hơn khi có thêm phân hệ.
 const ReceptionPage = lazy(() =>
   import('@/features/reception/ReceptionPage').then((m) => ({
     default: m.ReceptionPage,
   })),
+)
+
+const LoginPage = lazy(() =>
+  import('@/features/auth/LoginPage').then((m) => ({ default: m.LoginPage })),
 )
 
 function HomePage() {
@@ -37,6 +42,7 @@ export default function App() {
           element={<Navigate to="/quan-tri/tiep-don" replace />}
         />
         <Route path="/quan-tri/tiep-don" element={<ReceptionPage />} />
+        <Route path={LOGIN_PATH} element={<LoginPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
