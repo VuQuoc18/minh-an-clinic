@@ -16,6 +16,8 @@ RUN python -c "import tomllib; print('\n'.join(tomllib.load(open('pyproject.toml
 COPY alembic.ini ./
 COPY migrations ./migrations
 COPY app ./app
+# Script dữ liệu mẫu (chỉ chạy khi đặt DEV_STAFF_TOKEN), dùng cho staging.
+COPY scripts ./scripts
 
 # Chạy bằng người dùng thường, không dùng root.
 RUN useradd --system --uid 10001 --no-create-home app
