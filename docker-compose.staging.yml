@@ -1,13 +1,15 @@
 # Môi trường staging chạy trên SpecForge (Môi trường ổn định), chỉ có dữ liệu giả.
 # SpecForge cấm cổng mở ra máy chủ và bind mount: truy cập qua edge proxy vào dịch vụ frontend cổng 80.
-# Biến cần đặt trong SpecForge: POSTGRES_PASSWORD, DEV_STAFF_TOKEN (chuỗi ngẫu nhiên dài, để chạy dữ liệu mẫu).
+# Không cần đặt biến nào: Postgres chỉ nằm trong mạng nội bộ của môi trường và chỉ chứa dữ liệu giả.
+# Muốn đổi mật khẩu DB thì đặt POSTGRES_PASSWORD trong cài đặt môi trường của SpecForge.
+# DEV_STAFF_TOKEN được sinh ngẫu nhiên mỗi lần backend khởi động (chỉ để chạy script dữ liệu mẫu).
 services:
   db:
     image: postgres:16-alpine
     environment:
       POSTGRES_DB: clinic
       POSTGRES_USER: clinic
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Cần đặt POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-clinic-staging}
       TZ: Asia/Ho_Chi_Minh
     volumes:
       - db-data:/var/lib/postgresql/data
@@ -21,16 +23,16 @@ services:
     build: ./backend
     # Mỗi lần khởi động: chạy migration, nạp dữ liệu mẫu (chạy lại được) và đặt lại 5 tài khoản thử đăng nhập.
     command: >
-      sh -c "alembic upgrade head &&
+      sh -c "export DEV_STAFF_TOKEN=$$(python -c 'import secrets; print(secrets.token_urlsafe(32))') &&
+             alembic upgrade head &&
              python -m app.dev_seed &&
              python scripts/seed_e2e_login.py &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers"
     environment:
-      DATABASE_URL: postgresql+psycopg://clinic:${POSTGRES_PASSWORD:?}@db:5432/clinic
+      DATABASE_URL: postgresql+psycopg://clinic:${POSTGRES_PASSWORD:-clinic-staging}@db:5432/clinic
       TIMEZONE: Asia/Ho_Chi_Minh
       LOG_LEVEL: INFO
       PYTHONPATH: /app
-      DEV_STAFF_TOKEN: ${DEV_STAFF_TOKEN:?Cần đặt DEV_STAFF_TOKEN để nạp dữ liệu mẫu}
     depends_on:
       db:
         condition: service_healthy
